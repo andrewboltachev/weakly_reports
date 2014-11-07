@@ -116,15 +116,17 @@ def monthly(request, year, month_no):
     with_tuple = lambda f: lambda x: f(*x)
     h_week = lambda week_no, activities: div(*(map(with_tuple(h_activity), activities) + [h_subtotal(week_no, activities)]), style='margin-bottom: 20px;')
     h_activity = lambda name, hours: div(name, ' ', span(str(hours) + 'h'))
-    h_subtotal = lambda week_no, activities: strong('SubTotal for week #%d: %sh' % (week_no,sum(map(operator.itemgetter(1), activities))), style='font-style: italic; ')
-    h_total = lambda weeks: strong('Total: ', sum(map(sum, map(functools.partial(map, operator.itemgetter(1)), map(operator.itemgetter(1), weeks)))))
+    h_subtotal = lambda week_no, activities: span('SubTotal for week #%d: %sh' % (week_no,sum(map(operator.itemgetter(1), activities))), style='font-style: italic; ')
+    total = lambda weeks: sum(map(sum, map(functools.partial(map, operator.itemgetter(1)), map(operator.itemgetter(1), weeks))))
+    h_total = lambda weeks: strong('Total: ', str(total(weeks)) + 'h')
+    h_month_total = lambda t: h4('Total this month: ', str(t) + 'h')
     h_project = lambda name, weeks: div(h3(name), *(list(map(with_tuple(h_week), weeks)) + [h_total(weeks)]))
     contents = [h_project(
         ('%d. ' % (i + 1,)) + name,
         weeks
-    ) for i, (name, weeks) in enumerate(data)]
-    html = bootstrap3(container(
+    ) for i, (name, weeks) in enumerate(data)] + [h_month_total(sum(map(total, map(operator.itemgetter(1), data))))]
+    html = bootstrap3(container(div(
         h1('Monthly report for %s' % (datetime.datetime.strptime('%d-%d-1' % (year,month_no), '%Y-%m-%d').strftime('%B %Y'),)),
-        *contents)
+        *contents, style='margin-bottom: 60px;'))
     )
     return HttpResponse(html)
