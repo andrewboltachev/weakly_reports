@@ -9,12 +9,34 @@ from django.http import HttpResponse, HttpResponseNotFound
 from .models import Project, TimeEntry
 from django.core.urlresolvers import reverse
 from decimal import Decimal
+from collections import OrderedDict
+
+
+def get_weeks():
+    weeks = []
+    for time_entry in TimeEntry.objects.all():
+        week_no = time_entry.date.isocalendar()[1]
+        if not week_no in weeks:
+            weeks.append(week_no)
+    return weeks
+
+
+def get_months():
+    months = []
+    for time_entry in TimeEntry.objects.all():
+        month_no = time_entry.date.month
+        if not month_no in months:
+            months.append(month_no)
+    return months
 
 
 def home(request):
+    '''
     data = [
         (2014, [45, 46], [10, 11]),
     ]
+    '''
+    data = [(2014, get_weeks(), get_months())]
     h_year = lambda year, weeks, months: div(h2(str(year)), weeks, months)
     h_weeks_for_year = lambda *x: div(h4('Weeks'), ul(*x))
     h_months_for_year = lambda *x: div(h4('Months'), ul(*x))
