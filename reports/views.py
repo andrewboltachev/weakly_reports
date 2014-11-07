@@ -19,7 +19,7 @@ def get_weeks():
     weeks = []
     for time_entry in TimeEntry.objects.all():
         if not time_entry.isoweek() in weeks:
-            weeks.append(week_no)
+            weeks.append(time_entry.isoweek())
     return weeks
 
 
