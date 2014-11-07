@@ -61,6 +61,21 @@ def weekly(request, year, week_no):
         week_no = int(week_no)
     except TypeError:
         return HttpResponseNotFound()
+    projects = []
+    for time_entry in TimeEntry.objects.for_week(year, week_no):
+        if time_entry.project.id not in map(operator.itemgetter(0), projects):
+            projects.append(
+                (
+                    time_entry.project.id,
+                    time_entry.project.name,
+                    []
+                )
+            )
+        project = filter(lambda x: x[0] == time_entry.project.id, projects)[0]
+        project[2].append(
+            (time_entry.name, time_entry.time)
+        )
+    '''
     data = [
         ('Project name 1', [
             ('some activity', Decimal('1.0')),
@@ -71,6 +86,8 @@ def weekly(request, year, week_no):
             ('some activity', Decimal('1.0')),
         ]),
     ]
+    '''
+    data = map(lambda x: (x[1], x[2]), projects)
     h_total = lambda t: strong('Total: ', str(t) + 'h')
     h_activity = lambda name, hours: div(name, ' ', span(str(hours) + 'h'))
     total = lambda activities: sum(map(operator.itemgetter(1), activities))
