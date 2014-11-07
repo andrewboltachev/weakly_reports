@@ -1,3 +1,4 @@
+import datetime
 from django.shortcuts import render
 from htmler.bootstrap import bootstrap3, container
 from htmler.fun import ul, li, div, h1, h2, h4, a
@@ -49,9 +50,10 @@ def monthly(request, year, month_no):
         return HttpResponseNotFound()
     if not month_no in range(1, 12 + 1):
         return HttpResponseNotFound()
+    month_and_year_name = datetime.datetime.strptime('%d-%d-1' % (year,month_no), '%Y-%m-%d').strftime('%B %Y')
     contents = []
     html = bootstrap3(container(
-        h1('Monthly report for month #%d (%d)' % (month_no, year)),
+        h1('Monthly report for %s' % (month_and_year_name,)),
         *contents)
     )
     return HttpResponse(html)
