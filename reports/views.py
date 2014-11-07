@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from htmler.bootstrap import bootstrap3, container
-from htmler.fun import ul, li, div, h2, h4, a
+from htmler.fun import ul, li, div, h1, h2, h4, a
 from htmler.tags import SafeString
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 from .models import Project, TimeEntry
 from django.core.urlresolvers import reverse
 
@@ -28,8 +28,30 @@ def home(request):
 
 
 def weekly(request, year, week_no):
+    try:
+        year = int(year)
+        week_no = int(week_no)
+    except TypeError:
+        return HttpResponseNotFound()
+    contents = []
+    html = bootstrap3(container(
+        h1('Weekly report for week #%d (%d)' % (week_no, year)),
+        *contents)
+    )
     return HttpResponse(html)
 
 
-def monthly(request, year, week_no):
-    pass
+def monthly(request, year, month_no):
+    try:
+        year = int(year)
+        month_no = int(month_no)
+    except TypeError:
+        return HttpResponseNotFound()
+    if not month_no in range(1, 12 + 1):
+        return HttpResponseNotFound()
+    contents = []
+    html = bootstrap3(container(
+        h1('Monthly report for month #%d (%d)' % (month_no, year)),
+        *contents)
+    )
+    return HttpResponse(html)
