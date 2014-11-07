@@ -33,6 +33,9 @@ class TimeEntry(models.Model):
             str(self.time),
             self.date.strftime('%Y-%m-%d')
         )
+
+    def isoweek(self):
+        return self.date.isocalendar()[1]
     
     class Meta:
         ordering = ['date', 'id']

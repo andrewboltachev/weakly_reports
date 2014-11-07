@@ -15,8 +15,7 @@ from collections import OrderedDict
 def get_weeks():
     weeks = []
     for time_entry in TimeEntry.objects.all():
-        week_no = time_entry.date.isocalendar()[1]
-        if not week_no in weeks:
+        if not time_entry.isoweek() in weeks:
             weeks.append(week_no)
     return weeks
 
@@ -75,6 +74,28 @@ def monthly(request, year, month_no):
         return HttpResponseNotFound()
     if not month_no in range(1, 12 + 1):
         return HttpResponseNotFound()
+    projects = []
+    for time_entry in TimeEntry.objects.for_month(year, month_no):
+        if time_entry.project.id not in map(operator.itemgetter(0), projects):
+            projects.append(
+                (
+                    time_entry.project.id,
+                    time_entry.project.name,
+                    []
+                )
+            )
+        project = filter(lambda x: x[0] == time_entry.project.id, projects)[0]
+
+        if not time_entry.isoweek() in map(operator.itemgetter(0), project[2]):
+            project[2].append((time_entry.isoweek(), []))
+        week = filter(lambda x: x[0] == time_entry.isoweek(), project[2])[0]
+
+        week[1].append(
+            (time_entry.name, time_entry.time)
+        )
+
+    data = map(lambda x: (x[1], x[2]), projects)
+    '''
     data = [
         ('Project name 1', [
             (45, [
@@ -91,6 +112,7 @@ def monthly(request, year, month_no):
             ]),
         ]),
     ]
+    '''
     with_tuple = lambda f: lambda x: f(*x)
     h_week = lambda week_no, activities: div(*(map(with_tuple(h_activity), activities) + [h_subtotal(week_no, activities)]), style='margin-bottom: 20px;')
     h_activity = lambda name, hours: div(name, ' ', span(str(hours) + 'h'))
