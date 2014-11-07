@@ -12,6 +12,9 @@ from decimal import Decimal
 from collections import OrderedDict
 
 
+with_tuple = lambda f: lambda x: f(*x)
+
+
 def get_weeks():
     weeks = []
     for time_entry in TimeEntry.objects.all():
@@ -58,7 +61,31 @@ def weekly(request, year, week_no):
         week_no = int(week_no)
     except TypeError:
         return HttpResponseNotFound()
-    contents = []
+    data = [
+        ('Project name 1', [
+            ('some activity', Decimal('1.0')),
+            ('some activity', Decimal('2.0')),
+            ('some activity', Decimal('1.5')),
+        ]),
+        ('Project name 2', [
+            ('some activity', Decimal('1.0')),
+        ]),
+    ]
+    h_total = lambda t: strong('Total: ', str(t) + 'h')
+    h_activity = lambda name, hours: div(name, ' ', span(str(hours) + 'h'))
+    total = lambda activities: sum(map(operator.itemgetter(1), activities))
+    week_total = lambda data: sum(map(total, map(operator.itemgetter(1), data)))
+
+    h_week_total = lambda t: h4('Total this week: ', str(t) + 'h')
+    contents = [
+        div(
+            h2(('%d. ' % (i + 1,)) + name),
+            *(
+                map(with_tuple(h_activity), activities) + [h_total(total(activities))]
+            )
+        )
+        for i, (name, activities) in enumerate(data)
+    ] + [h_week_total(week_total(data))]
     html = bootstrap3(container(
         h1('Weekly report for week #%d (%d)' % (week_no, year)),
         *contents)
@@ -113,7 +140,6 @@ def monthly(request, year, month_no):
         ]),
     ]
     '''
-    with_tuple = lambda f: lambda x: f(*x)
     h_week = lambda week_no, activities: div(*(map(with_tuple(h_activity), activities) + [h_subtotal(week_no, activities)]), style='margin-bottom: 20px;')
     h_activity = lambda name, hours: div(name, ' ', span(str(hours) + 'h'))
     h_subtotal = lambda week_no, activities: span('SubTotal for week #%d: %sh' % (week_no,sum(map(operator.itemgetter(1), activities))), style='font-style: italic; ')
